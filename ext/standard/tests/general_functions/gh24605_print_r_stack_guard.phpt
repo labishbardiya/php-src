@@ -29,6 +29,18 @@ for ($i = 0; $i < 3000; $i++) {
     $array = [$array];
 }
 check_print_r('array', $array);
+
+// The output-writing mode must not emit a partial rendering on failure.
+ob_start();
+try {
+    print_r($array);
+    ob_end_clean();
+    echo "output: NOT GUARDED\n";
+} catch (Error $e) {
+    $output = ob_get_clean();
+    echo str_contains($e->getMessage(), 'Maximum call stack size') && $output === ''
+        ? "output: guarded\n" : "output: unexpected error\n";
+}
 while (is_array($array)) {
     $array = $array[0];
 }
@@ -50,4 +62,5 @@ while ($node !== null) {
 ?>
 --EXPECT--
 array: guarded
+output: guarded
 object: guarded
