@@ -10,14 +10,18 @@ zend.max_allowed_stack_size=256K
 unserialize_max_depth=0
 --FILE--
 <?php
-$depth = 3000;
+$depth = 5000;
 $input = str_repeat('a:1:{i:0;', $depth) . 'i:0;' . str_repeat('}', $depth);
 try {
     unserialize($input, ['max_depth' => 0]);
     echo "unserialize: no error\n";
 } catch (Error $e) {
-    echo "unserialize: guarded\n";
+    echo str_contains($e->getMessage(), 'Maximum call stack size')
+        ? "unserialize: guarded\n"
+        : "unserialize: unexpected error\n";
 }
+echo unserialize('a:1:{i:0;i:42;}')[0] === 42 ? "recovered\n" : "bad recovery\n";
 ?>
 --EXPECT--
 unserialize: guarded
+recovered
