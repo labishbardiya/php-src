@@ -421,6 +421,9 @@ static void print_hash(smart_str *buf, HashTable *ht, int indent, bool is_object
 		}
 		smart_str_appends(buf, "] => ");
 		zend_print_zval_r_to_buf(buf, tmp, indent+PRINT_ZVAL_INDENT);
+		if (UNEXPECTED(EG(exception))) {
+			return;
+		}
 		smart_str_appends(buf, "\n");
 	} ZEND_HASH_FOREACH_END();
 	indent -= PRINT_ZVAL_INDENT;
@@ -546,6 +549,15 @@ ZEND_API void zend_print_flat_zval_r(zval *expr)
 
 static void zend_print_zval_r_to_buf(smart_str *buf, zval *expr, int indent) /* {{{ */
 {
+	if (UNEXPECTED(EG(exception))) {
+		return;
+	}
+#ifdef ZEND_CHECK_STACK_LIMIT
+	if (UNEXPECTED(zend_call_stack_overflowed(EG(stack_limit)))) {
+		zend_call_stack_size_error();
+		return;
+	}
+#endif
 	switch (Z_TYPE_P(expr)) {
 		case IS_ARRAY:
 			smart_str_appends(buf, "Array\n");
