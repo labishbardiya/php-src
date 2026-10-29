@@ -29,7 +29,7 @@ function oom_post(string $body, string $script, array $ini): void
     $bodyFile = tempnam(sys_get_temp_dir(), 'oom_request_parsing');
     file_put_contents($bodyFile, $body);
 
-    $cmd = [getenv('TEST_PHP_CGI_EXECUTABLE'), '-n'];
+    $cmd = [getenv('TEST_PHP_CGI_EXECUTABLE'), '-n', '-d', 'fatal_error_backtraces=Off'];
     foreach ($ini as $entry) {
         $cmd[] = '-d';
         $cmd[] = $entry;

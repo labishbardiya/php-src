@@ -29,7 +29,7 @@ PHP;
 
 $php = getenv('TEST_PHP_EXECUTABLE') ?: PHP_BINARY;
 $p = proc_open(
-    [$php, '-n', ...$args, '-d', 'memory_limit=8M', '-r', $code, "http://$host/get.inc?test=bigbody&mib=16"],
+    [$php, '-n', ...$args, '-d', 'memory_limit=8M', '-d', 'fatal_error_backtraces=Off', '-r', $code, "http://$host/get.inc?test=bigbody&mib=16"],
     [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes
 );

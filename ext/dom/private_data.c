@@ -1,14 +1,12 @@
 /*
    +----------------------------------------------------------------------+
-   | Copyright (c) The PHP Group                                          |
+   | Copyright © The PHP Group and Contributors.                          |
    +----------------------------------------------------------------------+
-   | This source file is subject to version 3.01 of the PHP license,      |
-   | that is bundled with this package in the file LICENSE, and is        |
-   | available through the world-wide-web at the following url:           |
-   | https://www.php.net/license/3_01.txt                                 |
-   | If you did not receive a copy of the PHP license and are unable to   |
-   | obtain it through the world-wide-web, please send a note to          |
-   | license@php.net so we can mail you a copy immediately.               |
+   | This source file is subject to the Modified BSD License that is      |
+   | bundled with this package in the file LICENSE, and is available      |
+   | through the World Wide Web at <https://www.php.net/license/>.        |
+   |                                                                      |
+   | SPDX-License-Identifier: BSD-3-Clause                                |
    +----------------------------------------------------------------------+
    | Authors: Nora Dossche  <ndossche@php.net>                            |
    +----------------------------------------------------------------------+
@@ -44,6 +42,14 @@ php_dom_libxml_ns_mapper *php_dom_ns_mapper_from_private(php_dom_private_data *p
 	return private_data == NULL ? NULL : &private_data->ns_mapper;
 }
 
+static void php_dom_libxml_ns_mapper_prefix_map_dtor(zval *zv)
+{
+	HashTable *ht = Z_ARRVAL_P(zv);
+
+	zend_hash_destroy(ht);
+	efree(ht);
+}
+
 php_dom_private_data *php_dom_private_data_create(void)
 {
 	php_dom_private_data *private_data = emalloc(sizeof(*private_data));
@@ -51,7 +57,7 @@ php_dom_private_data *php_dom_private_data_create(void)
 	private_data->header.ns_hook = php_dom_libxml_private_data_ns_hook;
 	private_data->ns_mapper.html_ns = NULL;
 	private_data->ns_mapper.prefixless_xmlns_ns = NULL;
-	zend_hash_init(&private_data->ns_mapper.uri_to_prefix_map, 0, NULL, ZVAL_PTR_DTOR, false);
+	zend_hash_init(&private_data->ns_mapper.uri_to_prefix_map, 0, NULL, php_dom_libxml_ns_mapper_prefix_map_dtor, false);
 	private_data->template_fragments = NULL;
 	return private_data;
 }

@@ -1,12 +1,12 @@
 /*
    +----------------------------------------------------------------------+
-   | This source file is subject to version 3.01 of the PHP license,      |
-   | that is bundled with this package in the file LICENSE, and is        |
-   | available through the world-wide-web at the following url:           |
-   | https://www.php.net/license/3_01.txt                                 |
-   | If you did not receive a copy of the PHP license and are unable to   |
-   | obtain it through the world-wide-web, please send a note to          |
-   | license@php.net so we can mail you a copy immediately.               |
+   | Copyright © The PHP Group and Contributors.                          |
+   +----------------------------------------------------------------------+
+   | This source file is subject to the Modified BSD License that is      |
+   | bundled with this package in the file LICENSE, and is available      |
+   | through the World Wide Web at <https://www.php.net/license/>.        |
+   |                                                                      |
+   | SPDX-License-Identifier: BSD-3-Clause                                |
    +----------------------------------------------------------------------+
    | Authors: Gustavo Lopes <cataphract@php.net>                          |
    +----------------------------------------------------------------------+
@@ -21,7 +21,6 @@
 #include "breakiterator_iterators.h"
 #include "../common/common_enum.h"
 
-extern "C" {
 #define USE_BREAKITERATOR_POINTER
 #include "breakiterator_class.h"
 #include "breakiterator_iterators_arginfo.h"
@@ -29,7 +28,6 @@ extern "C" {
 #include "../locale/locale.h"
 #include <zend_exceptions.h>
 #include <zend_interfaces.h>
-}
 
 static zend_class_entry *IntlPartsIterator_ce_ptr;
 
@@ -43,7 +41,7 @@ inline BreakIterator *_breakiter_prolog(zend_object_iterator *iter)
 	if (bio->biter == NULL) {
 		intl_errors_set(BREAKITER_ERROR_P(bio), U_INVALID_STATE_ERROR,
 			"The BreakIterator object backing the PHP iterator is not "
-			"properly constructed", 0);
+			"properly constructed");
 	}
 	return bio->biter;
 }
@@ -65,7 +63,7 @@ static void _breakiterator_move_forward(zend_object_iterator *iter)
 		return;
 	}
 
-	int32_t pos = biter->next();
+	const int32_t pos = biter->next();
 	if (pos != BreakIterator::DONE) {
 		ZVAL_LONG(&zoi_iter->current, (zend_long)pos);
 	} //else we've reached the end of the enum, nothing more is required
@@ -76,7 +74,7 @@ static void _breakiterator_rewind(zend_object_iterator *iter)
 	BreakIterator *biter = _breakiter_prolog(iter);
 	zoi_with_current *zoi_iter = (zoi_with_current*)iter;
 
-	int32_t pos = biter->first();
+	const int32_t pos = biter->first();
 	ZVAL_LONG(&zoi_iter->current, (zend_long)pos);
 }
 
@@ -253,7 +251,7 @@ void IntlIterator_from_BreakIterator_parts(zval *break_iter_zv,
 	((zoi_break_iter_parts*)ii->iterator)->index_right = 0;
 }
 
-U_CFUNC PHP_METHOD(IntlPartsIterator, getBreakIterator)
+PHP_METHOD(IntlPartsIterator, getBreakIterator)
 {
 	INTLITERATOR_METHOD_INIT_VARS;
 
@@ -264,7 +262,7 @@ U_CFUNC PHP_METHOD(IntlPartsIterator, getBreakIterator)
 	RETURN_COPY_DEREF(&ii->iterator->data);
 }
 
-U_CFUNC PHP_METHOD(IntlPartsIterator, getRuleStatus)
+PHP_METHOD(IntlPartsIterator, getRuleStatus)
 {
 	INTLITERATOR_METHOD_INIT_VARS;
 

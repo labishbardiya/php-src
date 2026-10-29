@@ -49,6 +49,7 @@ function oom_rfc1867_request(callable $writeBody, string $memoryLimit = '8M', ar
         '-d', 'max_multipart_body_parts=10000000',
         '-d', 'max_input_time=-1',
         '-d', 'html_errors=0',
+        '-d', 'fatal_error_backtraces=Off',
     ];
 
     foreach ($extraIni as $ini) {

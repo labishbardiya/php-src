@@ -1,6 +1,6 @@
 /*
 ** DynASM x86 encoding engine.
-** Copyright (C) 2005-2023 Mike Pall. All rights reserved.
+** Copyright (C) 2005-2026 Mike Pall. All rights reserved.
 ** Released under the MIT license. See dynasm.lua for full copyright notice.
 */
 
@@ -148,14 +148,17 @@ void dasm_setup(Dst_DECL, const void *actionlist)
   }
 }
 
+#ifndef DASM_ABORT
+# define DASM_ABORT
+#endif
 
 #ifdef DASM_CHECKS
 #define CK(x, st) \
   do { if (!(x)) { \
-    D->status = DASM_S_##st|(int)(p-D->actionlist-1); return; } } while (0)
+    D->status = DASM_S_##st|(int)(p-D->actionlist-1); DASM_ABORT; return; } } while (0)
 #define CKPL(kind, st) \
   do { if ((size_t)((char *)pl-(char *)D->kind##labels) >= D->kind##size) { \
-    D->status=DASM_S_RANGE_##st|(int)(p-D->actionlist-1); return; } } while (0)
+    D->status=DASM_S_RANGE_##st|(int)(p-D->actionlist-1); DASM_ABORT; return; } } while (0)
 #else
 #define CK(x, st)	((void)0)
 #define CKPL(kind, st)	((void)0)

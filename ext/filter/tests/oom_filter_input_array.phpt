@@ -23,7 +23,7 @@ $body = "--$boundary\r\nContent-Disposition: form-data; name=\"k\"\r\n\r\n"
       . "\r\n--$boundary--\r\n";
 
 $p = proc_open(
-    [getenv('TEST_PHP_CGI_EXECUTABLE'), '-n', '-d', 'memory_limit=12M', '-d', 'html_errors=0'],
+    [getenv('TEST_PHP_CGI_EXECUTABLE'), '-n', '-d', 'memory_limit=12M', '-d', 'html_errors=0', '-d', 'fatal_error_backtraces=Off'],
     [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
     $pipes,
     null,

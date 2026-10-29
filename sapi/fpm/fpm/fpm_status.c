@@ -56,6 +56,9 @@ int fpm_status_export_to_zval(zval *status)
 	int i;
 
 	scoreboard_p = fpm_scoreboard_copy(NULL, 1);
+	if (!scoreboard_p) {
+		return -1;
+	}
 
 	now_epoch = time(NULL);
 	fpm_clock_get(&now);
@@ -180,17 +183,19 @@ int fpm_status_handle_request(void) /* {{{ */
 			sapi_add_header_ex(ZEND_STRL("Expires: Thu, 01 Jan 1970 00:00:00 GMT"), 1, 1);
 			sapi_add_header_ex(ZEND_STRL("Cache-Control: no-cache, no-store, must-revalidate, max-age=0"), 1, 1);
 			PUTS("Internal error. Please review log file for errors.");
+			zend_string_release_ex(_GET_str, 0);
 			return 1;
 		}
 
 		if (scoreboard_p->idle < 0 || scoreboard_p->active < 0) {
-			fpm_scoreboard_free_copy(scoreboard_p);
 			zlog(ZLOG_ERROR, "[pool %s] invalid status values", scoreboard_p->pool);
 			SG(sapi_headers).http_response_code = 500;
 			sapi_add_header_ex(ZEND_STRL("Content-Type: text/plain"), 1, 1);
 			sapi_add_header_ex(ZEND_STRL("Expires: Thu, 01 Jan 1970 00:00:00 GMT"), 1, 1);
 			sapi_add_header_ex(ZEND_STRL("Cache-Control: no-cache, no-store, must-revalidate, max-age=0"), 1, 1);
 			PUTS("Internal error. Please review log file for errors.");
+			zend_string_release_ex(_GET_str, 0);
+			fpm_scoreboard_free_copy(scoreboard_p);
 			return 1;
 		}
 
@@ -201,6 +206,7 @@ int fpm_status_handle_request(void) /* {{{ */
 
 		/* handle HEAD */
 		if (SG(request_info).headers_only) {
+			zend_string_release_ex(_GET_str, 0);
 			fpm_scoreboard_free_copy(scoreboard_p);
 			return 1;
 		}
@@ -380,44 +386,44 @@ int fpm_status_handle_request(void) /* {{{ */
 			time_format = "%s";
 
 			short_syntax =
-				"# HELP phpfpm_up Could pool %s using a %s PM on PHP-FPM be reached?\n"
 				"# TYPE phpfpm_up gauge\n"
+				"# HELP phpfpm_up Could pool %s using a %s PM on PHP-FPM be reached?\n"
 				"phpfpm_up 1\n"
-				"# HELP phpfpm_start_since The number of seconds since FPM has started.\n"
 				"# TYPE phpfpm_start_since counter\n"
+				"# HELP phpfpm_start_since The number of seconds since FPM has started.\n"
 				"phpfpm_start_since %lu\n"
-				"# HELP phpfpm_accepted_connections The number of requests accepted by the pool.\n"
 				"# TYPE phpfpm_accepted_connections counter\n"
+				"# HELP phpfpm_accepted_connections The number of requests accepted by the pool.\n"
 				"phpfpm_accepted_connections %lu\n"
-				"# HELP phpfpm_listen_queue The number of requests in the queue of pending connections.\n"
 				"# TYPE phpfpm_listen_queue gauge\n"
+				"# HELP phpfpm_listen_queue The number of requests in the queue of pending connections.\n"
 				"phpfpm_listen_queue %d\n"
-				"# HELP phpfpm_max_listen_queue The maximum number of requests in the queue of pending connections since FPM has started.\n"
 				"# TYPE phpfpm_max_listen_queue counter\n"
+				"# HELP phpfpm_max_listen_queue The maximum number of requests in the queue of pending connections since FPM has started.\n"
 				"phpfpm_max_listen_queue %d\n"
 				"# TYPE phpfpm_listen_queue_length gauge\n"
 				"# HELP phpfpm_listen_queue_length The size of the socket queue of pending connections.\n"
 				"phpfpm_listen_queue_length %u\n"
-				"# HELP phpfpm_idle_processes The number of idle processes.\n"
 				"# TYPE phpfpm_idle_processes gauge\n"
+				"# HELP phpfpm_idle_processes The number of idle processes.\n"
 				"phpfpm_idle_processes %d\n"
-				"# HELP phpfpm_active_processes The number of active processes.\n"
 				"# TYPE phpfpm_active_processes gauge\n"
+				"# HELP phpfpm_active_processes The number of active processes.\n"
 				"phpfpm_active_processes %d\n"
-				"# HELP phpfpm_total_processes The number of idle + active processes.\n"
 				"# TYPE phpfpm_total_processes gauge\n"
+				"# HELP phpfpm_total_processes The number of idle + active processes.\n"
 				"phpfpm_total_processes %d\n"
-				"# HELP phpfpm_max_active_processes The maximum number of active processes since FPM has started.\n"
 				"# TYPE phpfpm_max_active_processes counter\n"
+				"# HELP phpfpm_max_active_processes The maximum number of active processes since FPM has started.\n"
 				"phpfpm_max_active_processes %d\n"
-				"# HELP phpfpm_max_children_reached The number of times, the process limit has been reached, when pm tries to start more children (works only for pm 'dynamic' and 'ondemand').\n"
 				"# TYPE phpfpm_max_children_reached counter\n"
+				"# HELP phpfpm_max_children_reached The number of times, the process limit has been reached, when pm tries to start more children (works only for pm 'dynamic' and 'ondemand').\n"
 				"phpfpm_max_children_reached %u\n"
-				"# HELP phpfpm_slow_requests The number of requests that exceeded your 'request_slowlog_timeout' value.\n"
 				"# TYPE phpfpm_slow_requests counter\n"
+				"# HELP phpfpm_slow_requests The number of requests that exceeded your 'request_slowlog_timeout' value.\n"
 				"phpfpm_slow_requests %lu\n"
-				"# HELP phpfpm_memory_peak The memory usage peak since FPM has started.\n"
 				"# TYPE phpfpm_memory_peak gauge\n"
+				"# HELP phpfpm_memory_peak The memory usage peak since FPM has started.\n"
 				"phpfpm_memory_peak %zu\n"
 				"# EOF\n";
 

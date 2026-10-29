@@ -9,20 +9,20 @@ $cmd = "$php $args";
 
 try {
     proc_open($cmd, [['redirect']], $pipes);
-} catch (ValueError $exception) {
-    echo $exception->getMessage() . "\n";
+} catch (Throwable $exception) {
+    echo $exception::class, ': ', $exception->getMessage(), "\n";
 }
 
 try {
     proc_open($cmd, [['redirect', 'foo']], $pipes);
-} catch (ValueError $exception) {
-    echo $exception->getMessage() . "\n";
+} catch (Throwable $exception) {
+    echo $exception::class, ': ', $exception->getMessage(), "\n";
 }
 
 try {
     proc_open($cmd, [['redirect', 42]], $pipes);
-} catch (ValueError $exception) {
-    echo $exception->getMessage() . "\n";
+} catch (Throwable $exception) {
+    echo $exception::class, ': ', $exception->getMessage(), "\n";
 }
 
 echo "\nWith pipe:\n";
@@ -55,8 +55,8 @@ proc_close($proc);
 
 ?>
 --EXPECTF--
-Missing redirection target
-Redirection target must be of type int, string given
+ValueError: Missing redirection target
+ValueError: Redirection target must be of type int, string given
 
 Warning: proc_open(): Redirection target 42 not found in %s
 

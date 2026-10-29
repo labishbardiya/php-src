@@ -56,6 +56,14 @@ var_dump(session_status() === PHP_SESSION_NONE);
 
 ?>
 --EXPECTF--
+Warning: Class MySessionHandler implementing SessionHandlerInterface is missing the create_sid() method which will be required in PHP 9.0 in %s on line %d
+
+Warning: Class MySessionHandler implementing SessionHandlerInterface is missing the validateId() method which will be required in PHP 9.0 in %s on line %d
+
+Deprecated: session_set_save_handler(): Providing an object to argument #1 ($sessionhandler) which does not have the create_sid() method defined is deprecated in %s on line %d
+
+Deprecated: session_set_save_handler(): Providing an object to argument #1 ($sessionhandler) which does not have the validateId() method defined is deprecated in %s on line %d
+
 Warning: session_destroy(): Cannot call session save handler in a recursive manner in %s on line %d
 
 Warning: session_destroy(): Session object destruction failed in %s on line %d

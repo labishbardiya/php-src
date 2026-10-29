@@ -1,14 +1,12 @@
 /*
    +----------------------------------------------------------------------+
-   | Copyright (c) The PHP Group                                          |
+   | Copyright © The PHP Group and Contributors.                          |
    +----------------------------------------------------------------------+
-   | This source file is subject to version 3.01 of the PHP license,      |
-   | that is bundled with this package in the file LICENSE, and is        |
-   | available through the world-wide-web at the following url:           |
-   | https://www.php.net/license/3_01.txt                                 |
-   | If you did not receive a copy of the PHP license and are unable to   |
-   | obtain it through the world-wide-web, please send a note to          |
-   | license@php.net so we can mail you a copy immediately.               |
+   | This source file is subject to the Modified BSD License that is      |
+   | bundled with this package in the file LICENSE, and is available      |
+   | through the World Wide Web at <https://www.php.net/license/>.        |
+   |                                                                      |
+   | SPDX-License-Identifier: BSD-3-Clause                                |
    +----------------------------------------------------------------------+
    | Author: Andrei Zmievski <andrei@php.net>                             |
    +----------------------------------------------------------------------+
@@ -283,7 +281,7 @@ static zend_string *make_str(unsigned char *text, size_t leng, HashTable *intern
 }
 
 static bool add_token(
-		zval *return_value, int token_type, unsigned char *text, size_t leng, int lineno,
+		HashTable *return_value_ht, int token_type, unsigned char *text, size_t leng, int lineno,
 		zend_class_entry *token_class, HashTable *interned_strings) {
 	zval token;
 	if (token_class) {
@@ -332,7 +330,7 @@ static bool add_token(
 		}
 		ZVAL_STR(&token, value);
 	}
-	zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), &token);
+	zend_hash_next_index_insert_new(return_value_ht, &token);
 	return true;
 }
 
@@ -356,11 +354,13 @@ static bool tokenize(zval *return_value, zend_string *source, zend_class_entry *
 	zend_hash_init(&interned_strings, 0, NULL, NULL, 0);
 	array_init(return_value);
 
+	HashTable *return_value_ht = Z_ARRVAL_P(return_value);
+
 	while ((token_type = lex_scan(&token, NULL))) {
 		ZEND_ASSERT(token_type != T_ERROR);
 
 		if (!add_token(
-			return_value, token_type, zendtext, zendleng, token_line,
+			return_value_ht, token_type, zendtext, zendleng, token_line,
 			token_class, &interned_strings)) {
 			success = false;
 			break;
@@ -380,7 +380,7 @@ static bool tokenize(zval *return_value, zend_string *source, zend_class_entry *
 				/* fetch the rest into a T_INLINE_HTML */
 				if (zendcursor < zendlimit) {
 					if (!add_token(
-						return_value, T_INLINE_HTML, zendcursor, zendlimit - zendcursor,
+						return_value_ht, T_INLINE_HTML, zendcursor, zendlimit - zendcursor,
 						token_line, token_class, &interned_strings)) {
 						success = false;
 						break;
@@ -408,7 +408,7 @@ static bool tokenize(zval *return_value, zend_string *source, zend_class_entry *
 }
 
 struct event_context {
-	zval *tokens;
+	HashTable *tokens;
 	zend_class_entry *token_class;
 	bool oom;
 };
@@ -461,7 +461,7 @@ static void on_event(
 			}
 			break;
 		case ON_FEEDBACK: {
-			HashTable *tokens_ht = Z_ARRVAL_P(ctx->tokens);
+			HashTable *tokens_ht = ctx->tokens;
 			zval *token_zv, *id_zv = NULL;
 			ZEND_HASH_REVERSE_FOREACH_VAL(tokens_ht, token_zv) {
 				id_zv = extract_token_id_to_replace(token_zv, text, length);
@@ -502,7 +502,7 @@ static bool tokenize_parse(
 	zend_prepare_string_for_scanning(&source_zval, ZSTR_EMPTY_ALLOC());
 	array_init(&token_stream);
 
-	ctx.tokens = &token_stream;
+	ctx.tokens = Z_ARRVAL(token_stream);
 	ctx.token_class = token_class;
 	ctx.oom = false;
 

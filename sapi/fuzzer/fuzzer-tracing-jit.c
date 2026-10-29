@@ -1,14 +1,12 @@
 /*
    +----------------------------------------------------------------------+
-   | Copyright (c) The PHP Group                                          |
+   | Copyright © The PHP Group and Contributors.                          |
    +----------------------------------------------------------------------+
-   | This source file is subject to version 3.01 of the PHP license,      |
-   | that is bundled with this package in the file LICENSE, and is        |
-   | available through the world-wide-web at the following url:           |
-   | https://www.php.net/license/3_01.txt                                 |
-   | If you did not receive a copy of the PHP license and are unable to   |
-   | obtain it through the world-wide-web, please send a note to          |
-   | license@php.net so we can mail you a copy immediately.               |
+   | This source file is subject to the Modified BSD License that is      |
+   | bundled with this package in the file LICENSE, and is available      |
+   | through the World Wide Web at <https://www.php.net/license/>.        |
+   |                                                                      |
+   | SPDX-License-Identifier: BSD-3-Clause                                |
    +----------------------------------------------------------------------+
    | Authors: Nikita Popov <nikic@php.net>                                |
    +----------------------------------------------------------------------+
@@ -29,15 +27,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 	 * we bail out here, as the JIT code may loop infinitely. */
 	steps_left = MAX_STEPS;
 	bailed_out = false;
-	zend_alter_ini_entry_chars(
-		jit_option, "off", sizeof("off")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME);
+	set_jit_option(jit_option, "off");
 	fuzzer_do_request_from_buffer(
 		FILE_NAME, (const char *) Data, Size, /* execute */ 1, opcache_invalidate);
 
 	if (!bailed_out) {
 		steps_left = MAX_STEPS;
-		zend_alter_ini_entry_chars(jit_option,
-			"tracing", sizeof("tracing")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME);
+		set_jit_option(jit_option, "tracing");
 		zend_execute_ex = orig_execute_ex;
 		/* Trace & compile */
 		fuzzer_do_request_from_buffer(
@@ -54,12 +50,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 }
 
 int LLVMFuzzerInitialize(int *argc, char ***argv) {
-	char *opcache_path = get_opcache_path();
-	assert(opcache_path && "Failed to determine opcache path");
-
 	char ini_buf[512];
 	snprintf(ini_buf, sizeof(ini_buf),
-		"zend_extension=%s\n"
+		/* The default opcache.jit=disable does not allow enabling the JIT at runtime. */
+		"opcache.jit=off\n"
 		"opcache.validate_timestamps=0\n"
 		"opcache.file_update_protection=0\n"
 		"opcache.memory_consumption=1024\n"
@@ -71,9 +65,7 @@ int LLVMFuzzerInitialize(int *argc, char ***argv) {
 		"opcache.jit_max_root_traces=100000\n"
 		"opcache.jit_max_side_traces=100000\n"
 		"opcache.jit_max_exit_counters=100000\n"
-		"opcache.protect_memory=1\n",
-		opcache_path);
-	free(opcache_path);
+		"opcache.protect_memory=1\n");
 
 	create_file();
 	fuzzer_init_php_for_execute(ini_buf);

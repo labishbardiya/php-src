@@ -1,12 +1,12 @@
 /*
    +----------------------------------------------------------------------+
-   | This source file is subject to version 3.01 of the PHP license,      |
-   | that is bundled with this package in the file LICENSE, and is        |
-   | available through the world-wide-web at the following url:           |
-   | https://www.php.net/license/3_01.txt                                 |
-   | If you did not receive a copy of the PHP license and are unable to   |
-   | obtain it through the world-wide-web, please send a note to          |
-   | license@php.net so we can mail you a copy immediately.               |
+   | Copyright © The PHP Group and Contributors.                          |
+   +----------------------------------------------------------------------+
+   | This source file is subject to the Modified BSD License that is      |
+   | bundled with this package in the file LICENSE, and is available      |
+   | through the World Wide Web at <https://www.php.net/license/>.        |
+   |                                                                      |
+   | SPDX-License-Identifier: BSD-3-Clause                                |
    +----------------------------------------------------------------------+
    | Authors: Gustavo Lopes <cataphract@php.net>                          |
    +----------------------------------------------------------------------+
@@ -16,12 +16,11 @@
 
 #include "intl_convertcpp.h"
 #include <unicode/ustring.h>
-extern "C" {
-#include <php.h>
-}
+#include <zend_types.h>
+#include <zend_string.h>
 
 /* {{{ intl_stringFromChar */
-int intl_stringFromChar(UnicodeString &ret, char *str, size_t str_len, UErrorCode *status)
+zend_result intl_stringFromChar(UnicodeString &ret, char *str, size_t str_len, UErrorCode *status)
 {
 	if(UNEXPECTED(str_len > INT32_MAX)) {
 		*status = U_BUFFER_OVERFLOW_ERROR;
@@ -57,14 +56,14 @@ zend_string* intl_charFromString(const UnicodeString &from, UErrorCode *status)
 	zend_string *u8res;
 
 	if (UNEXPECTED(from.isBogus())) {
-		return NULL;
+		return nullptr;
 	}
 
 	//the number of UTF-8 code units is not larger than that of UTF-16 code
 	//units * 3
 	if (UNEXPECTED(from.length() > INT32_MAX / 3)) {
 		*status = U_BUFFER_OVERFLOW_ERROR;
-		return NULL;
+		return nullptr;
 	}
 	int32_t capacity = from.length() * 3;
 
@@ -76,12 +75,12 @@ zend_string* intl_charFromString(const UnicodeString &from, UErrorCode *status)
 
 	const UChar *utf16buf = from.getBuffer();
 	int32_t actual_len;
-	u_strToUTF8WithSub(ZSTR_VAL(u8res), capacity, &actual_len, utf16buf, from.length(),
-		U_SENTINEL, NULL, status);
+	u_strToUTF8WithSub(ZSTR_VAL(u8res), capacity + 1, &actual_len, utf16buf, from.length(),
+		U_SENTINEL, nullptr, status);
 
 	if (U_FAILURE(*status)) {
 		zend_string_free(u8res);
-		return NULL;
+		return nullptr;
 	}
 	u8res = zend_string_truncate(u8res, actual_len, 0);
 

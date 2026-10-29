@@ -26,6 +26,7 @@ function oom_post_encoded(string $body, string $script): void
             '-d', 'html_errors=0',
             '-d', 'filter.default=encoded',
             '-d', 'filter.default_flags=0',
+            '-d', 'fatal_error_backtraces=Off',
             /* the conversion is what is under test, not the deprecation */
             '-d', 'error_reporting=' . (E_ALL & ~E_DEPRECATED),
         ],

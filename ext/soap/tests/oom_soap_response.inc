@@ -26,7 +26,7 @@ class OomSoapClient extends SoapClient
 {
     public string $response = '';
 
-    public function __doRequest($request, $location, $action, $version, $oneWay = false): ?string
+    public function __doRequest($request, $location, $action, $version, $oneWay = false, $uriParserClass = null): ?string
     {
         return $this->response;
     }

@@ -8,16 +8,16 @@ fileinfo
 $finfo = new finfo();
 try {
     var_dump($finfo->file(''));
-} catch (\ValueError $e) {
-    echo $e->getMessage() . \PHP_EOL;
+} catch (Throwable $e) {
+    echo $e::class, ": ", $e->getMessage() . \PHP_EOL;
 }
 try {
     var_dump($finfo->file("\0"));
-} catch (\TypeError $e) {
-    echo $e->getMessage() . \PHP_EOL;
+} catch (Throwable $e) {
+    echo $e::class, ": ", $e->getMessage() . \PHP_EOL;
 }
 
 ?>
 --EXPECT--
-finfo::file(): Argument #1 ($filename) must not be empty
-finfo::file(): Argument #1 ($filename) must not contain any null bytes
+ValueError: finfo::file(): Argument #1 ($filename) must not be empty
+ValueError: finfo::file(): Argument #1 ($filename) must not contain any null bytes

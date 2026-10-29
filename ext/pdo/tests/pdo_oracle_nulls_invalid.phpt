@@ -39,11 +39,11 @@ Valid mode: bool(true)
 int(1)
 Valid mode: bool(true)
 int(2)
-ValueError: PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
+ValueError: PDO::setAttribute(): Argument #2 ($value) PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
 Unchanged mode: int(2)
-ValueError: PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
+ValueError: PDO::setAttribute(): Argument #2 ($value) PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
 Unchanged mode: int(2)
-ValueError: PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
+ValueError: PDO::setAttribute(): Argument #2 ($value) PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
 Unchanged mode: int(2)
-ValueError: PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
+ValueError: PDO::setAttribute(): Argument #2 ($value) PDO::ATTR_ORACLE_NULLS must be one of the PDO::NULL_* constants
 Unchanged mode: int(2)

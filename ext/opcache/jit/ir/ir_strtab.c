@@ -1,7 +1,7 @@
 /*
  * IR - Lightweight JIT Compilation Framework
  * (String table)
- * Copyright (C) 2022 Zend by Perforce.
+ * This file is part of the IR Project distributed under the MIT-style LICENSE.
  * Authors: Dmitry Stogov <dmitry@php.net>
  */
 
@@ -13,7 +13,7 @@ typedef struct _ir_strtab_bucket {
 	uint32_t    len;
 	const char *str;
 	uint32_t    next;
-	ir_ref      val;
+	ir_str      val;
 } ir_strtab_bucket;
 
 static uint32_t ir_str_hash(const char *str, size_t len)
@@ -112,7 +112,7 @@ void ir_strtab_init(ir_strtab *strtab, uint32_t size, uint32_t buf_size)
 	}
 }
 
-ir_ref ir_strtab_find(const ir_strtab *strtab, const char *str, uint32_t len)
+ir_str ir_strtab_find(const ir_strtab *strtab, const char *str, uint32_t len)
 {
 	uint32_t h = ir_str_hash(str, len);
 	const char *data = (const char*)strtab->data;
@@ -131,7 +131,7 @@ ir_ref ir_strtab_find(const ir_strtab *strtab, const char *str, uint32_t len)
 	return 0;
 }
 
-ir_ref ir_strtab_lookup(ir_strtab *strtab, const char *str, uint32_t len, ir_ref val)
+ir_str ir_strtab_lookup(ir_strtab *strtab, const char *str, uint32_t len, ir_str val)
 {
 	uint32_t h = ir_str_hash(str, len);
 	char *data = (char*)strtab->data;
@@ -180,7 +180,56 @@ ir_ref ir_strtab_lookup(ir_strtab *strtab, const char *str, uint32_t len, ir_ref
 	return val;
 }
 
-ir_ref ir_strtab_update(ir_strtab *strtab, const char *str, uint32_t len, ir_ref val)
+void ir_strtab_set(ir_strtab *strtab, const char *str, uint32_t len, ir_str val)
+{
+	uint32_t h = ir_str_hash(str, len);
+	char *data = (char*)strtab->data;
+	uint32_t pos = ((uint32_t*)data)[(int32_t)(h | strtab->mask)];
+	ir_strtab_bucket *p;
+
+	while (pos != IR_INVALID_IDX) {
+		p = (ir_strtab_bucket*)(data + pos);
+		if (p->h == h
+		 && p->len == len
+		 && memcmp(p->str, str, len) == 0) {
+			p->val = val;
+			return;
+		}
+		pos = p->next;
+	}
+
+	IR_ASSERT(val != 0);
+
+	if (UNEXPECTED(strtab->count >= strtab->size)) {
+		ir_strtab_resize(strtab);
+		data = strtab->data;
+	}
+
+	if (strtab->buf) {
+		if (UNEXPECTED(strtab->buf_size - strtab->buf_top < len + 1)) {
+			ir_strtab_grow_buf(strtab, len + 1);
+		}
+
+		memcpy(strtab->buf + strtab->buf_top, str, len);
+		strtab->buf[strtab->buf_top + len] = 0;
+		str = (const char*)strtab->buf + strtab->buf_top;
+		strtab->buf_top += len + 1;
+	}
+
+	pos = strtab->pos;
+	strtab->pos += sizeof(ir_strtab_bucket);
+	strtab->count++;
+	p = (ir_strtab_bucket*)(data + pos);
+	p->h = h;
+	p->len = len;
+	p->str = str;
+	h |= strtab->mask;
+	p->next = ((uint32_t*)data)[(int32_t)h];
+	((uint32_t*)data)[(int32_t)h] = pos;
+	p->val = val;
+}
+
+ir_str ir_strtab_update(ir_strtab *strtab, const char *str, uint32_t len, ir_str val)
 {
 	uint32_t h = ir_str_hash(str, len);
 	char *data = (char*)strtab->data;
@@ -199,13 +248,13 @@ ir_ref ir_strtab_update(ir_strtab *strtab, const char *str, uint32_t len, ir_ref
 	return 0;
 }
 
-const char *ir_strtab_str(const ir_strtab *strtab, ir_ref idx)
+const char *ir_strtab_str(const ir_strtab *strtab, ir_str idx)
 {
 	IR_ASSERT(idx >= 0 && (uint32_t)idx < strtab->count);
 	return ((const ir_strtab_bucket*)strtab->data)[idx].str;
 }
 
-const char *ir_strtab_strl(const ir_strtab *strtab, ir_ref idx, size_t *len)
+const char *ir_strtab_strl(const ir_strtab *strtab, ir_str idx, size_t *len)
 {
 	const ir_strtab_bucket *b = ((const ir_strtab_bucket*)strtab->data) + idx;
 	IR_ASSERT(idx >= 0 && (uint32_t)idx < strtab->count);

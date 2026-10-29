@@ -57,7 +57,7 @@ EOT;
 foreach ($codes as $key => $code) {
     echo "\n--------------\nSnippet no. $key:\n--------------\n";
     $code = escapeshellarg($code);
-    echo `echo $code | $php $args -a`, "\n";
+    echo shell_exec("echo $code | $php $args -a"), "\n";
 }
 
 echo "\nDone\n";

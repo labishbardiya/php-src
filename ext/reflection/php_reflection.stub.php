@@ -1,6 +1,9 @@
 <?php
 
-/** @generate-class-entries */
+/**
+ * @generate-class-entries
+ * @generate-c-enums
+ */
 
 class ReflectionException extends Exception
 {
@@ -19,7 +22,7 @@ interface Reflector extends Stringable
 /** @not-serializable */
 abstract class ReflectionFunctionAbstract implements Reflector
 {
-    public string $name;
+    public readonly string $name;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -146,22 +149,16 @@ final class ReflectionGenerator
 {
     public function __construct(Generator $generator) {}
 
-    /** @tentative-return-type */
     public function getExecutingLine(): int {}
 
-    /** @tentative-return-type */
     public function getExecutingFile(): string {}
 
-    /** @tentative-return-type */
     public function getTrace(int $options = DEBUG_BACKTRACE_PROVIDE_OBJECT): array {}
 
-    /** @tentative-return-type */
     public function getFunction(): ReflectionFunctionAbstract {}
 
-    /** @tentative-return-type */
     public function getThis(): ?object {}
 
-    /** @tentative-return-type */
     public function getExecutingGenerator(): Generator {}
 
     public function isClosed(): bool {}
@@ -182,7 +179,7 @@ class ReflectionMethod extends ReflectionFunctionAbstract
     /** @cvalue ZEND_ACC_FINAL */
     public const int IS_FINAL = UNKNOWN;
 
-    public string $class;
+    public readonly string $class;
 
     public function __construct(object|string $objectOrMethod, ?string $method = null) {}
 
@@ -232,6 +229,7 @@ class ReflectionMethod extends ReflectionFunctionAbstract
     public function hasPrototype(): bool {}
 
     /** @tentative-return-type */
+    #[\Deprecated(since: '8.5', message: "as it has no effect since PHP 8.1")]
     public function setAccessible(bool $accessible): void {}
 }
 
@@ -256,7 +254,7 @@ class ReflectionClass implements Reflector
     /** @cvalue ZEND_LAZY_OBJECT_SKIP_DESTRUCTOR */
     public const int SKIP_DESTRUCTOR = UNKNOWN;
 
-    public string $name;
+    public readonly string $name;
 
     private function __clone(): void {}
 
@@ -475,8 +473,8 @@ class ReflectionProperty implements Reflector
     /** @cvalue ZEND_ACC_FINAL */
     public const int IS_FINAL = UNKNOWN;
 
-    public string $name;
-    public string $class;
+    public readonly string $name;
+    public readonly string $class;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -487,6 +485,8 @@ class ReflectionProperty implements Reflector
 
     /** @tentative-return-type */
     public function getName(): string {}
+
+    public function getMangledName(): string {}
 
     /** @tentative-return-type */
     public function getValue(?object $object = null): mixed {}
@@ -546,6 +546,7 @@ class ReflectionProperty implements Reflector
     public function getDocComment(): string|false {}
 
     /** @tentative-return-type */
+    #[\Deprecated(since: '8.5', message: "as it has no effect since PHP 8.1")]
     public function setAccessible(bool $accessible): void {}
 
     /** @tentative-return-type */
@@ -573,6 +574,10 @@ class ReflectionProperty implements Reflector
     public function getHook(PropertyHookType $type): ?ReflectionMethod {}
 
     public function isFinal(): bool {}
+
+    public function isReadable(?string $scope, ?object $object = null): bool {}
+
+    public function isWritable(?string $scope, ?object $object = null): bool {}
 }
 
 /** @not-serializable */
@@ -587,8 +592,8 @@ class ReflectionClassConstant implements Reflector
     /** @cvalue ZEND_ACC_FINAL */
     public const int IS_FINAL = UNKNOWN;
 
-    public string $name;
-    public string $class;
+    public readonly string $name;
+    public readonly string $class;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -637,7 +642,7 @@ class ReflectionClassConstant implements Reflector
 /** @not-serializable */
 class ReflectionParameter implements Reflector
 {
-    public string $name;
+    public readonly string $name;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -646,6 +651,8 @@ class ReflectionParameter implements Reflector
     public function __construct($function, int|string $param) {}
 
     public function __toString(): string {}
+
+    public function getDocComment(): string|false {}
 
     /** @tentative-return-type */
     public function getName(): string {}
@@ -749,7 +756,7 @@ class ReflectionIntersectionType extends ReflectionType
 /** @not-serializable */
 class ReflectionExtension implements Reflector
 {
-    public string $name;
+    public readonly string $name;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -795,7 +802,7 @@ class ReflectionExtension implements Reflector
 /** @not-serializable */
 class ReflectionZendExtension implements Reflector
 {
-    public string $name;
+    public readonly string $name;
 
     /** @implementation-alias ReflectionClass::__clone */
     private function __clone(): void {}
@@ -839,9 +846,12 @@ class ReflectionAttribute implements Reflector
     /** @cvalue REFLECTION_ATTRIBUTE_IS_INSTANCEOF */
     public const int IS_INSTANCEOF = UNKNOWN;
 
-    public string $name;
+    public readonly string $name;
 
     public function getName(): string {}
+    public function inNamespace(): bool {}
+    public function getNamespaceName(): string {}
+    public function getShortName(): string {}
     public function getTarget(): int {}
     public function isRepeated(): bool {}
     public function getArguments(): array {}
@@ -906,13 +916,15 @@ final class ReflectionFiber
  * @strict-properties
  * @not-serializable
  */
-final class ReflectionConstant implements Reflector
+class ReflectionConstant implements Reflector
 {
-    public string $name;
+    public readonly string $name;
 
     public function __construct(string $name) {}
 
     public function getName(): string {}
+
+    public function inNamespace(): bool {}
 
     public function getNamespaceName(): string {}
 
@@ -922,5 +934,13 @@ final class ReflectionConstant implements Reflector
 
     public function isDeprecated(): bool {}
 
+    public function getFileName(): string|false {}
+
+    public function getExtension(): ?ReflectionExtension {}
+
+    public function getExtensionName(): string|false {}
+
     public function __toString(): string {}
+
+    public function getAttributes(?string $name = null, int $flags = 0): array {}
 }
